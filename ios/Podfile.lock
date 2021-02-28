@@ -1,0 +1,59 @@
+PODS:
+  - BaiduMapKit (6.0.0):
+    - BaiduMapKit/Base (= 6.0.0)
+    - BaiduMapKit/Cloud (= 6.0.0)
+    - BaiduMapKit/Map (= 6.0.0)
+    - BaiduMapKit/Search (= 6.0.0)
+    - BaiduMapKit/Utils (= 6.0.0)
+  - BaiduMapKit/Base (6.0.0)
+  - BaiduMapKit/Cloud (6.0.0):
+    - BaiduMapKit/Base
+  - BaiduMapKit/Map (6.0.0):
+    - BaiduMapKit/Base
+  - BaiduMapKit/Search (6.0.0):
+    - BaiduMapKit/Base
+  - BaiduMapKit/Utils (6.0.0):
+    - BaiduMapKit/Base
+  - BMKLocationKit (1.8.5)
+  - Flutter (1.0.0)
+  - flutter_bmfbase (0.0.1):
+    - BaiduMapKit
+    - Flutter
+  - flutter_bmflocation (1.0.3):
+    - BMKLocationKit
+    - Flutter
+  - "permission_handler (5.0.1+1)":
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutter_bmfbase (from `.symlinks/plugins/flutter_bmfbase/ios`)
+  - flutter_bmflocation (from `.symlinks/plugins/flutter_bmflocation/ios`)
+  - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
+
+SPEC REPOS:
+  trunk:
+    - BaiduMapKit
+    - BMKLocationKit
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutter_bmfbase:
+    :path: ".symlinks/plugins/flutter_bmfbase/ios"
+  flutter_bmflocation:
+    :path: ".symlinks/plugins/flutter_bmflocation/ios"
+  permission_handler:
+    :path: ".symlinks/plugins/permission_handler/ios"
+
+SPEC CHECKSUMS:
+  BaiduMapKit: 4bee786830b3ca20ec645edaa07f053ce6c7d184
+  BMKLocationKit: fd3d6b4a9a3a1a2763819f56b780bda5fc5b8726
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  flutter_bmfbase: 5c8352d8cb3e36dc65a51388bc099b4e4ee2db13
+  flutter_bmflocation: 12f1ba91bae4b16d78d4f475023e0254ed351f1c
+  permission_handler: eac8e15b4a1a3fba55b761d19f3f4e6b005d15b6
+
+PODFILE CHECKSUM: ea4755e716bdb5b5fbfe6d3beefca7b6ee0110e0
+
+COCOAPODS: 1.9.3
