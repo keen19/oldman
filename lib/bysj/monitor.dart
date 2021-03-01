@@ -69,7 +69,7 @@ class LocDemoState extends State<LocDemo> with AutomaticKeepAliveClientMixin {
         try {
           baiduLocation =
               BaiduLocation.fromMap(result);
-          print(baiduLocation);// 将原生端返回的定位结果信息存储在定位结果类中
+          //print(baiduLocation);// 将原生端返回的定位结果信息存储在定位结果类中
         } catch (e) {
           print(e);
         }
@@ -159,7 +159,7 @@ class LocDemoState extends State<LocDemo> with AutomaticKeepAliveClientMixin {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => GetLocationInfo(
+                        builder: (context) => BasicMap(baiduLocation?.latitude,baiduLocation?.longitude
                         )));
               },
               child: new Text('查看地图'),

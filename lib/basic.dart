@@ -1,24 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bmflocation/bdmap_location_flutter_plugin.dart';
 import 'package:flutter_bmflocation/flutter_baidu_location.dart';
 import 'package:flutter_bmflocation/flutter_baidu_location_android_option.dart';
 import 'package:flutter_bmflocation/flutter_baidu_location_ios_option.dart';
+import 'package:flutter_bmfmap/BaiduMap/bmfmap_map.dart';
+import 'package:flutter_bmfbase/BaiduMap/bmfmap_base.dart';
+import 'package:flutter_bmfutils/BaiduMap/utils/bmf_utils_calculate.dart';
+import 'package:flutter_bmfmap/BaiduMap/map/bmf_map_controller.dart';
+import 'package:flutter_bmfmap/BaiduMap/map/bmf_map_view.dart';
+import 'package:flutter_bmfmap/BaiduMap/models/bmf_map_options.dart';
+import 'package:flutter_bmfmap/BaiduMap/models/bmf_userlocation.dart';
 
 import 'bysj/monitor.dart';
 
-
-
 class BasicMap extends StatefulWidget {
-  double longitude,latitude;
-  BasicMap(this.latitude,this.longitude);
+  double longitude, latitude;
+
+  BasicMap(this.latitude, this.longitude);
+
   @override
-  BasicMapState createState() => BasicMapState(latitude,longitude);
+  BasicMapState createState() => BasicMapState(latitude, longitude);
 }
 
 class BasicMapState extends State<BasicMap> {
+  double latitude, longitude;
 
-  double latitude,longitude;
-  BasicMapState(this.latitude,this.longitude);
+  BasicMapState(this.latitude, this.longitude);
 
   /// 我的位置
   BMFUserLocation _userLocation;
@@ -37,7 +45,7 @@ class BasicMapState extends State<BasicMap> {
     super.initState();
 
     mapOptions = BMFMapOptions(
-        center: BMFCoordinate(latitude,longitude),
+        center: BMFCoordinate(latitude, longitude),
         zoomLevel: 18,
         mapPadding: BMFEdgeInsets(left: 30, top: 0, right: 30, bottom: 0));
   }
@@ -57,8 +65,7 @@ class BasicMapState extends State<BasicMap> {
 
   /// 更新位置
   void updateUserLocation() {
-    BMFCoordinate coordinate =
-        BMFCoordinate(latitude,longitude);
+    BMFCoordinate coordinate = BMFCoordinate(latitude, longitude);
     BMFLocation location = BMFLocation(
         coordinate: coordinate,
         altitude: 0,
@@ -89,21 +96,24 @@ class BasicMapState extends State<BasicMap> {
     myMapController?.updateLocationViewWithParam(_displayParam);
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     screenSize = MediaQuery.of(context).size;
-    return Container(
-      height: screenSize.height,
-      width: screenSize.width,
-      child: BMFMapWidget(
-        onBMFMapCreated: (controller) {
-          onBMFMapCreated(controller);
-          updateUserLocation();
-          updateUserLocationDisplayParam();
-        },
-        mapOptions: mapOptions,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("aaa"),
+      ),
+      body: Container(
+        height: 500.0,
+        width: 500.0,
+        child: BMFMapWidget(
+          onBMFMapCreated: (controller) {
+            onBMFMapCreated(controller);
+            updateUserLocation();
+            updateUserLocationDisplayParam();
+          },
+          mapOptions: mapOptions,
+        ),
       ),
     );
   }

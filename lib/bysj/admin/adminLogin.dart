@@ -44,6 +44,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> with ConnectionDb{
           .pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => u.MyApp()),
               (route) => route == null);
+          conn.close();
       Fluttertoast.showToast(msg: "登录成功");
     } else {
       Fluttertoast.showToast(msg: "用户名或密码错误");

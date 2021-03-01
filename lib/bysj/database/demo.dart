@@ -10,11 +10,13 @@ import 'package:sqljocky5/sqljocky.dart';
       user: 'keen',
       password: "Zxc000222",
       db: 'demo1'));
-
-   Results result = await (await conn.execute(
+  Results results = await(await conn.execute('select name, email from user')).deStream();
+  results.forEach((element) {print(element);});
+  // print(results);
+/*   Results result = await (await conn.execute(
        "select username,password from user where username = 'nihao'"))
        .deStream();
-   result.forEach((element) {print(element);});
+   result.forEach((element) {print(element);});*/
    /*Future<bool> selectAdmin(String admin, String password) async {
      var results =
      await conn.execute("select * from adminInfo where admin_user = '$admin'");
@@ -33,7 +35,7 @@ import 'package:sqljocky5/sqljocky.dart';
    print(selectAdmin('张三', '123456'));*/
   await conn.close();
 }
-class User{
+/*class User{
   String username;
   String password;
 
@@ -45,7 +47,7 @@ class User{
     return "User{"+
    "username='"+username+"\'"+",password='"+password+"\'"+"}";
   }
-}
+}*/
 /*void main() {
  var a =new LoginVerify();
  a.selectAll();
