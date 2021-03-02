@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sqljocky5/sqljocky.dart';
 
- Future main() async {
+ main() async {
   // Open a connection (testdb should already exist)
   final conn = await MySqlConnection.connect(ConnectionSettings(
       host: 'rm-wz9zt03rn0864rz8uho.mysql.rds.aliyuncs.com',
@@ -10,8 +9,30 @@ import 'package:sqljocky5/sqljocky.dart';
       user: 'keen',
       password: "Zxc000222",
       db: 'demo1'));
-  Results results = await(await conn.execute('select name, email from user')).deStream();
-  results.forEach((element) {print(element);});
+
+  List list = List();
+
+  Map<String,List>map =Map();
+  ///查询所有信息
+  Future<void> showAll() async {
+   for (int i = 0; i < list.length; i++) {
+    print(list);
+    list.removeAt(i);
+   }
+   Results result =
+   await (await conn.execute("select username,address,guardian from user"))
+       .deStream();
+   result.forEach((element) {
+    list.add(element);
+    print(element);
+   });
+   for(int i=0;i<list.length;i++){
+    map['${list[i][0]}']=list[i];
+   }
+   print(map);
+   //createListView();
+  }
+  showAll();
   // print(results);
 /*   Results result = await (await conn.execute(
        "select username,password from user where username = 'nihao'"))
