@@ -22,6 +22,7 @@ dependencies:
   flutter_bmflocation: ^1.0.3
   flutter_bmfmap: ^1.0.2
   flutter_bmfutils: ^1.0.2
+  date_format: ^1.0.9
 #    amap_flutter_location: ^1.0.0
 #    permission_handler: ^5.0.0
     ##  开启陀螺仪插件

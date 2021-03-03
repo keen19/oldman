@@ -1,13 +1,9 @@
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import '../database/ConnectionDB.dart';
 import 'package:sqljocky5/sqljocky.dart' hide Row;
-import '../../model/user.dart';
-import '../../model/monitor.dart';
-import '../../demo/c.dart';
+import 'addMonitor.dart';
+import 'addOldMan.dart';
 
 void main() => runApp(MyApp());
 
@@ -18,7 +14,7 @@ class MyApp extends StatelessWidget {
       title: 'Material App',
       home: Scaffold(
         appBar: AppBar(
-          title: Text('Material App Bar'),
+          title: Text('管理员界面'),
         ),
         body: ShowAllPeople(),
       ),
@@ -63,27 +59,22 @@ class _ShowAllPeopleState extends State<ShowAllPeople> {
     await listClear();
     //执行查询
     Results result = await (await conn.execute(
-            "select username,sex,age,latitude,longitude,address,guardian,state from user"))
+            "select username,sex,age,latitude,longitude,address,guardian,state,emergency from user"))
         .deStream();
     result.forEach((element) {
       list.add(element);
     });
-/*    for (int i = 0; i < list.length; i++) {
-      map['${list[i][0]}'] = list[i];
-    }*/
-    //print(map);
     widgets = createListView();
   }
 
-  deleteUser(String username) async {
-    conn.execute("delete from user where username = '$username'");
+  deleteUser(String username,String monitorName) async {
+    conn.execute("delete from user where username = '$username' && guardian='$monitorName'");
   }
 
   Future<void> listClear() async {
     list = List();
   }
 
-  List list2 = ['姓名', '年龄', '性别', '纬度', '经度', '地址', '监护人'];
 
   List<Widget> createListView() {
     TextEditingController oldManNameController = new TextEditingController();
@@ -93,350 +84,719 @@ class _ShowAllPeopleState extends State<ShowAllPeople> {
     GlobalKey _formKey = GlobalKey();
     var a = Colors.black12;
     var b = Colors.grey;
+
+    List<Widget> sortList = List();
+
     for (int i = 0; i < list.length; i++) {
-      //print(list.toString());
-      widgets.add(InkWell(
-        onTap: () {
-          return showModalBottomSheet(
-              context: context,
-              builder: (context) {
-                return Container(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: <Widget>[
-                        Row(
-                          //mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            SizedBox(
-                              width: 50,
-                            ),
-                            Text(
-                              "姓名:",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            Text(
-                              "${list[i][0]}",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              "性别:",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            Text(
-                              "${list[i][1]}",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              "年龄:",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            Text(
-                              "${list[i][2]}",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              "纬度:",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            Text(
-                              "${list[i][3]}",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              "经度:",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            Text(
-                              "${list[i][4]}",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              "地址:",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            Text(
-                              "${list[i][5]}",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              "监护人:",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            Text(
-                              "${list[i][6]}",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                      ],
+      if(list[i][7] == 'y' && list[i][8]=='y'){
+        sortList.insert(0, InkWell(
+          onTap: () {
+            return showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return Container(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        //crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              SizedBox(
+                                width: 50,
+                              ),
+                              Text(
+                                "姓名:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][0]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "性别:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][1]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "年龄:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][2]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "纬度:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][3]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "经度:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][4]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "地址:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][5]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "监护人:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][6]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "处于监控范围:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Icon(Icons.circle,
+                                  color: list[i][7] == 'y' ? Colors.green : Colors.red),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "发生紧急情况:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Icon(Icons.circle,
+                                  color: list[i][8] == 'y' ? Colors.green : Colors.red),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              });
-        },
-        child: Container(
-          color: i % 2 != 0 ? a : b,
-          height: 50,
-          child: Row(
-            children: <Widget>[
-              Padding(padding: EdgeInsets.fromLTRB(5, 0, 0, 0)),
-              Text(list[i][0]),
-              SizedBox(
-                width: 10,
-                child: Divider(),
-              ),
-              //垂直分割线
-              Text(list[i][6]),
-              SizedBox(
-                width: 1,
-                height: 12,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(color: Colors.grey),
+                  );
+                });
+          },
+          child: Container(
+            height: 50,
+            child: Row(
+              children: <Widget>[
+                Padding(padding: EdgeInsets.fromLTRB(5, 0, 0, 0)),
+                Container(width: 60,child: Center(child: Text(list[i][0]),),),
+                Container(width: 60,child: Center(child: Text(list[i][6]),),),
+                Container(width: 80,child: Center(child: Text(list[i][5]),),),
+                SizedBox(
+                  width: 10,
                 ),
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              Text(list[i][5]),
-              SizedBox(
-                width: 10,
-              ),
-              //修改
-              InkWell(
-                onTap: () {
-                  oldManNameController.text = '${list[i][0]}';
-                  oldManSexController.text = '${list[i][1]}';
-                  oldManAgeController.text = '${list[i][2]}';
-                  showModalBottomSheet(
-                      context: context,
-                      builder: (context) {
-                        return Padding(
-                          padding: EdgeInsets.fromLTRB(20.0, 0, 20, 0),
-                          child: Container(
-                            height: 400,
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                children: <Widget>[
-                                  SizedBox(
-                                    height: 20,
-                                  ),
-                                  //用户名输入框
-                                  TextFormField(
-                                    controller: oldManNameController,
-                                    //添加装饰盒显示图标
-                                    decoration: InputDecoration(
-                                      fillColor: Color(0x30cccccc),
-                                      filled: true,
-                                      enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Color(0x00FF0000)),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(100))),
-                                      focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Color(0x00000000)),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(100))),
-                                      labelText: "用户名:",
+                //修改
+                InkWell(
+                  onTap: () {
+                    oldManNameController.text = '${list[i][0]}';
+                    oldManSexController.text = '${list[i][1]}';
+                    oldManAgeController.text = '${list[i][2]}';
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return Padding(
+                            padding: EdgeInsets.fromLTRB(20.0, 0, 20, 0),
+                            child: Container(
+                              height: 400,
+                              child: Form(
+                                key: _formKey,
+                                child: Column(
+                                  children: <Widget>[
+                                    SizedBox(
+                                      height: 20,
                                     ),
-                                    validator: (String value) {
-                                      if (value.length >= 2 &&
-                                          value.length <= 16) {
-                                        return null;
-                                      } else {
-                                        return '只能输入2-16个字符';
-                                      }
-                                    },
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  TextFormField(
-                                    controller: oldManSexController,
-                                    //添加装饰盒显示图标
-                                    decoration: InputDecoration(
-                                      fillColor: Color(0x30cccccc),
-                                      filled: true,
-                                      enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Color(0x00FF0000)),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(100))),
-                                      focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Color(0x00000000)),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(100))),
-                                      labelText: "监护人:",
-                                    ),
-                                    validator: (String value) {
-                                      return value == 'nan' || value == 'nv'
-                                          ? null
-                                          : '请正确输入';
-                                    },
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  TextFormField(
-                                    controller: oldManAgeController,
-                                    //添加装饰盒显示图标
-                                    decoration: InputDecoration(
-                                      fillColor: Color(0x30cccccc),
-                                      filled: true,
-                                      enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Color(0x00FF0000)),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(100))),
-                                      focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Color(0x00000000)),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(100))),
-                                      labelText: "年龄:",
-                                    ),
-                                    validator: (String value) {
-                                      return value.length > 0 &&
-                                              value.length < 3
-                                          ? null
-                                          : '只能输入2-16个字符';
-                                    },
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      ElevatedButton(
-                                        child: Text("取消"),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
+                                    //用户名输入框
+                                    TextFormField(
+                                      controller: oldManNameController,
+                                      //添加装饰盒显示图标
+                                      decoration: InputDecoration(
+                                        fillColor: Color(0x30cccccc),
+                                        filled: true,
+                                        enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00FF0000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00000000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        labelText: "用户名:",
                                       ),
-                                      SizedBox(
-                                        width: 20,
+                                      validator: (String value) {
+                                        if (value.length >= 2 &&
+                                            value.length <= 16) {
+                                          return null;
+                                        } else {
+                                          return '只能输入2-16个字符';
+                                        }
+                                      },
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    TextFormField(
+                                      controller: oldManSexController,
+                                      //添加装饰盒显示图标
+                                      decoration: InputDecoration(
+                                        fillColor: Color(0x30cccccc),
+                                        filled: true,
+                                        enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00FF0000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00000000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        labelText: "监护人:",
                                       ),
-                                      ElevatedButton(
-                                        child: Text("添加"),
-                                        onPressed: () {
-                                          if (true) {
+                                      validator: (String value) {
+                                        return value == 'nan' || value == 'nv'
+                                            ? null
+                                            : '请正确输入';
+                                      },
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    TextFormField(
+                                      controller: oldManAgeController,
+                                      //添加装饰盒显示图标
+                                      decoration: InputDecoration(
+                                        fillColor: Color(0x30cccccc),
+                                        filled: true,
+                                        enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00FF0000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00000000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        labelText: "年龄:",
+                                      ),
+                                      validator: (String value) {
+                                        return value.length > 0 &&
+                                            value.length < 3
+                                            ? null
+                                            : '只能输入2-16个字符';
+                                      },
+                                    ),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        ElevatedButton(
+                                          child: Text("取消"),
+                                          onPressed: () {
                                             Navigator.pop(context);
-                                            Fluttertoast.showToast(msg: "添加成功");
-                                          } else {
-                                            Fluttertoast.showToast(msg: "添加失败");
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  )
-                                ],
+                                          },
+                                        ),
+                                        SizedBox(
+                                          width: 20,
+                                        ),
+                                        ElevatedButton(
+                                          child: Text("添加"),
+                                          onPressed: () {
+                                            if (true) {
+                                              Navigator.pop(context);
+                                              Fluttertoast.showToast(msg: "添加成功");
+                                            } else {
+                                              Fluttertoast.showToast(msg: "添加失败");
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      });
-                },
-                child: Container(
-                    padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
-                    decoration: BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                        color: Color.fromARGB(255, 34, 150, 243)),
-                    height: 30,
-                    width: 50,
-                    child: Text(
-                      "修改",
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    )),
-              ),
-              //删除
-              InkWell(
-                onTap: () {
-                  showDialog(
-                      context: context,
-                      builder: (ctx) {
-                        return AlertDialog(
-                          title: Text("提示信息!"),
-                          content: Text("您确定要删除吗"),
-                          actions: <Widget>[
-                            ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Text("取消")),
-                            ElevatedButton(
-                                onPressed: () async {
-                                  await deleteUser(list[i][0]);
-                                  setState(() {
-                                    widgets.removeAt(i);
-                                  });
-                                  Navigator.pop(context);
-                                },
-                                child: Text("确定")),
-                          ],
-                        );
-                      });
-                },
-                child: Container(
-                    padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
-                    decoration: BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                        color: Color.fromARGB(255, 34, 150, 243)),
-                    height: 30,
-                    width: 50,
-                    child: Text(
-                      "删除",
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    )),
-              ),
-              Icon(Icons.circle,
-                  color: list[i][7] == 'y' ? Colors.green : Colors.red),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 15,
-                color: Colors.black87,
-              ),
-            ],
+                          );
+                        });
+                  },
+                  child: Container(
+                      padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                      decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          color: Color.fromARGB(255, 34, 150, 243)),
+                      height: 30,
+                      width: 50,
+                      child: Text(
+                        "修改",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      )),
+                ),
+                //删除
+                InkWell(
+                  onTap: () {
+                    showDialog(
+                        context: context,
+                        builder: (ctx) {
+                          return AlertDialog(
+                            title: Text("提示信息!"),
+                            content: Text("您确定要删除吗?"),
+                            actions: <Widget>[
+                              ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text("取消")),
+                              ElevatedButton(
+                                  onPressed: () async {
+                                    await deleteUser(list[i][0],list[i][7]);
+                                    setState(() {
+                                      widgets.remove(this);
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text("确定")),
+                            ],
+                          );
+                        });
+                  },
+                  child: Container(
+                      padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                      decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          color: Color.fromARGB(255, 34, 150, 243)),
+                      height: 30,
+                      width: 50,
+                      child: Text(
+                        "删除",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      )),
+                ),
+                Icon(Icons.circle,
+                    color: list[i][7] == 'y' && list[i][8]=='y' ? Colors.green : Colors.red),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 15,
+                  color: Colors.black87,
+                ),
+              ],
+            ),
           ),
-        ),
-      ));
+        ));
+      }else{
+        sortList.add(InkWell(
+          onTap: () {
+            return showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return Container(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        //crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              SizedBox(
+                                width: 50,
+                              ),
+                              Text(
+                                "姓名:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][0]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "性别:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][1]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "年龄:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][2]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "纬度:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][3]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "经度:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][4]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "地址:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][5]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "监护人:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][6]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "处于监控范围:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Icon(Icons.circle,
+                                  color: list[i][7] == 'y' ? Colors.green : Colors.red),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "发生紧急情况:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Icon(Icons.circle,
+                                  color: list[i][8] == 'y' ? Colors.green : Colors.red),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                });
+          },
+          child: Container(
+            height: 50,
+            child: Row(
+              children: <Widget>[
+                Padding(padding: EdgeInsets.fromLTRB(5, 0, 0, 0)),
+                Container(width: 60,child: Center(child: Text(list[i][0]),),),
+                Container(width: 60,child: Center(child: Text(list[i][6]),),),
+                Container(width: 80,child: Center(child: Text(list[i][5]),),),
+                SizedBox(
+                  width: 10,
+                ),
+                //修改
+                InkWell(
+                  onTap: () {
+                    oldManNameController.text = '${list[i][0]}';
+                    oldManSexController.text = '${list[i][1]}';
+                    oldManAgeController.text = '${list[i][2]}';
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return Padding(
+                            padding: EdgeInsets.fromLTRB(20.0, 0, 20, 0),
+                            child: Container(
+                              height: 400,
+                              child: Form(
+                                key: _formKey,
+                                child: Column(
+                                  children: <Widget>[
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    //用户名输入框
+                                    TextFormField(
+                                      controller: oldManNameController,
+                                      //添加装饰盒显示图标
+                                      decoration: InputDecoration(
+                                        fillColor: Color(0x30cccccc),
+                                        filled: true,
+                                        enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00FF0000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00000000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        labelText: "用户名:",
+                                      ),
+                                      validator: (String value) {
+                                        if (value.length >= 2 &&
+                                            value.length <= 16) {
+                                          return null;
+                                        } else {
+                                          return '只能输入2-16个字符';
+                                        }
+                                      },
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    TextFormField(
+                                      controller: oldManSexController,
+                                      //添加装饰盒显示图标
+                                      decoration: InputDecoration(
+                                        fillColor: Color(0x30cccccc),
+                                        filled: true,
+                                        enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00FF0000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00000000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        labelText: "监护人:",
+                                      ),
+                                      validator: (String value) {
+                                        return value == 'nan' || value == 'nv'
+                                            ? null
+                                            : '请正确输入';
+                                      },
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    TextFormField(
+                                      controller: oldManAgeController,
+                                      //添加装饰盒显示图标
+                                      decoration: InputDecoration(
+                                        fillColor: Color(0x30cccccc),
+                                        filled: true,
+                                        enabledBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00FF0000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color(0x00000000)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(100))),
+                                        labelText: "年龄:",
+                                      ),
+                                      validator: (String value) {
+                                        return value.length > 0 &&
+                                            value.length < 3
+                                            ? null
+                                            : '只能输入2-16个字符';
+                                      },
+                                    ),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        ElevatedButton(
+                                          child: Text("取消"),
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                        ),
+                                        SizedBox(
+                                          width: 20,
+                                        ),
+                                        ElevatedButton(
+                                          child: Text("添加"),
+                                          onPressed: () {
+                                            if (true) {
+                                              Navigator.pop(context);
+                                              Fluttertoast.showToast(msg: "添加成功");
+                                            } else {
+                                              Fluttertoast.showToast(msg: "添加失败");
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        });
+                  },
+                  child: Container(
+                      padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                      decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          color: Color.fromARGB(255, 34, 150, 243)),
+                      height: 30,
+                      width: 50,
+                      child: Text(
+                        "修改",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      )),
+                ),
+                //删除
+                InkWell(
+                  onTap: () {
+                    showDialog(
+                        context: context,
+                        builder: (ctx) {
+                          return AlertDialog(
+                            title: Text("提示信息!"),
+                            content: Text("您确定要删除吗?"),
+                            actions: <Widget>[
+                              ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text("取消")),
+                              ElevatedButton(
+                                  onPressed: () async {
+                                    await deleteUser(list[i][0],list[i][7]);
+                                    setState(() {
+                                      widgets.remove(this);
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text("确定")),
+                            ],
+                          );
+                        });
+                  },
+                  child: Container(
+                      padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                      decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          color: Color.fromARGB(255, 34, 150, 243)),
+                      height: 30,
+                      width: 50,
+                      child: Text(
+                        "删除",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      )),
+                ),
+                Icon(Icons.circle,
+                    color: list[i][7] == 'y' && list[i][8]=='y' ? Colors.green : Colors.red),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 15,
+                  color: Colors.black87,
+                ),
+              ],
+            ),
+          ),
+        ));
+      }
+    }
+
+    ///排序修改颜色
+    for(int i = 0;i<sortList.length;i++){
+      widgets.add(
+        Container(
+          color: i %2 != 0? a:b,
+          child: sortList[i],
+        )
+      );
     }
     return widgets;
   }
@@ -445,37 +805,31 @@ class _ShowAllPeopleState extends State<ShowAllPeople> {
 
   Widget createButtonContainer() {
     return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.black
+        ),
+      ),
       child: Row(
         children: <Widget>[
-          SizedBox(
-            width: 5,
-          ),
-          Text("用户"),
-          SizedBox(
-            width: 10,
-            child: Divider(),
-          ),
-/*          Container(child: VerticalDivider(
-            color: Colors.grey,
-            width: 1,
-          ),
-          ), */ //垂直分割线
-          Text("监护人"),
+          Container(width: 60,child: Center(child: Text("用户"),),),
           SizedBox(
             width: 1,
-            height: 15,
+            height: 20,
             child: DecoratedBox(
               decoration: BoxDecoration(color: Colors.black87),
             ),
           ),
+           //垂直分割线
+          Container(width: 60,child: Center(child: Text("监护人"),),),
           SizedBox(
-            width: 10,
+            width: 1,
+            height: 20,
+            child: DecoratedBox(
+              decoration: BoxDecoration(color: Colors.black87),
+            ),
           ),
-          Text("实时地点"),
-          SizedBox(
-            width: 10,
-          ),
-          Text("是否离开监控"),
+          Expanded(child: Center(child: Text("实时地点"),),),
         ],
       ),
     );
@@ -487,6 +841,8 @@ class _ShowAllPeopleState extends State<ShowAllPeople> {
     }
   }
 
+
+
   int count = 0;
   GlobalKey key = GlobalKey();
   bool offstage = true;
@@ -495,16 +851,28 @@ class _ShowAllPeopleState extends State<ShowAllPeople> {
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        Container(
-          height: 50,
-          width: 800,
-          child: ElevatedButton(
-            onPressed: () async {
-              await showAll();
-              setState(() {});
-            },
-            child: Text("获取所有人"),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            //添加监护人按钮
+            AddMonitor(),
+            SizedBox(
+              width: 5,
+            ),
+            //添加老人按钮
+            AddOldMan(),
+            SizedBox(width: 5,),
+            Container(
+              width: 70,
+              child: ElevatedButton(
+                onPressed: () async {
+                  await showAll();
+                  setState(() {});
+                },
+                child: Text("刷新"),
+              ),
+            ),
+          ],
         ),
         createButtonContainer(),
         Flexible(

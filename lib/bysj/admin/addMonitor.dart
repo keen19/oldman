@@ -1,144 +1,174 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
-/*class AddMonitor extends StatefulWidget {
+import '../database/ConnectionDB.dart';
+import 'package:sqljocky5/sqljocky.dart' hide Row;
+class AddMonitor extends StatefulWidget {
   @override
   _AddMonitorState createState() => _AddMonitorState();
 }
 
-class _AddMonitorState extends State<AddMonitor> with Dialog{
-
+class _AddMonitorState extends State<AddMonitor> with ConnectionDb {
   @override
-  Widget build(BuildContext context) {
-    return Container();
+  initState(){
+    super.initState();
+    getConnection();
   }
-}*/
 
-class AddMonitor extends Dialog {
-  String monitorName;
-  String _newValue = "男";
-  String _dropValue;
-  GlobalKey<FormState> _formKey = GlobalKey();
+  GlobalKey<FormState> addMonitorKey = GlobalKey();
 
-  TextEditingController usernameController = new TextEditingController();
+  TextEditingController addMonitorNameController = new TextEditingController();
+  TextEditingController addMonitorAgeController = new TextEditingController();
+  TextEditingController addMonitorSexController = new TextEditingController();
 
+  Future<void> addMonitor(
+      String monitorName, String monitorSex, String monitorAge) async {
+    String sql = "insert into monitor (monitor_name,sex,age) values (?,?,?)";
+    List<StreamedResults> results = await (await conn.preparedWithAll(sql, [
+      ['$monitorName', '$monitorSex', '$monitorAge']
+    ]))
+        .toList();
+  }
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    return Material(
-      type: MaterialType.transparency,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.all(50.0),
-              child: Container(
-                width: 400,
-                height: 300,
-                color: Colors.white,
-                child: Column(
-                  children: <Widget>[
-                    Form(
-                      key: _formKey,
-                      child: Column(
-                        children: <Widget>[
-                          //用户名输入框
-                          TextFormField(
-                            controller: usernameController,
-                            //添加装饰盒显示图标
-                            decoration: InputDecoration(
-                              hintText: "必须输入2-16个字符",
-                              labelText: "用户名:",
-                              icon: Icon(Icons.person),
+    return ElevatedButton(
+      child: Text('添加监护人'),
+      onPressed: () {
+        showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return Padding(
+                padding: EdgeInsets.fromLTRB(20.0, 0, 20, 0),
+                child: Container(
+                  height: 400,
+                  child: Form(
+                    key: addMonitorKey,
+                    child: Column(
+                      children: <Widget>[
+                        SizedBox(
+                          height: 20,
+                        ),
+                        //用户名输入框
+                        TextFormField(
+                          controller: addMonitorNameController,
+                          //添加装饰盒显示图标
+                          decoration: InputDecoration(
+                            fillColor: Color(0x30cccccc),
+                            filled: true,
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color(0x00FF0000)),
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(100))),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color(0x00000000)),
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(100))),
+                            labelText: "用户名:",
+                          ),
+                          validator: (String value) {
+                            if (value.length >= 2 &&
+                                value.length <= 16) {
+                              return null;
+                            } else {
+                              return '只能输入2-16个字符';
+                            }
+                          },
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        TextFormField(
+                          controller: addMonitorSexController,
+                          //添加装饰盒显示图标
+                          decoration: InputDecoration(
+                            fillColor: Color(0x30cccccc),
+                            filled: true,
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color(0x00FF0000)),
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(100))),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color(0x00000000)),
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(100))),
+                            labelText: "性别:",
+                          ),
+                          validator: (String value) {
+                            return value == 'nan' || value == 'nv'
+                                ? null
+                                : '请正确输入';
+                          },
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        TextFormField(
+                          controller: addMonitorAgeController,
+                          //添加装饰盒显示图标
+                          decoration: InputDecoration(
+                            fillColor: Color(0x30cccccc),
+                            filled: true,
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color(0x00FF0000)),
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(100))),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Color(0x00000000)),
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(100))),
+                            labelText: "年龄:",
+                          ),
+                          validator: (String value) {
+                            return value.length > 0 && value.length < 3
+                                ? null
+                                : '只能输入0-99';
+                          },
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            ElevatedButton(
+                              child: Text("取消"),
+                              onPressed: () {
+                                //清空表单
+                                addMonitorKey.currentState.reset();
+                                Navigator.pop(context);
+                              },
                             ),
-                            onSaved: (value) {
-                              monitorName = value;
-                            },
-                            validator: (String value) {
-                              if (value.length >= 2 && value.length <= 16) {
-                                return null;
-                              } else {
-                                return '只能输入2-16个字符';
-                              }
-                            },
-                          ),
-                          Row(
-                            children: <Widget>[
-                              Radio<String>(
-                                  value: "男",
-                                  groupValue: _newValue,
-                                  onChanged: (value) {
-                                    /*  setState(() {
-                                  _newValue = value;
-                                });*/
-                                  }),
-                              Radio<String>(
-                                  value: "女",
-                                  groupValue: _newValue,
-                                  onChanged: (value) {
-                                    /*  setState(() {
-                                  _newValue = value;
-                                });*/
-                                  }),
-                            ],
-                          ),
-                          DropdownButton(
-                            value: _dropValue,
-                            items: [
-                              DropdownMenuItem(
-                                child: Text('男'),
-                                value: '男',
-                              ),
-                              DropdownMenuItem(child: Text('女'), value: '女'),
-                            ],
-                            onChanged: (value) {
-                              // setState(() {
-                              //   _dropValue = value;
-                              // });
-                            },
-                          ), //用户名输入框
-                          TextFormField(
-                            controller: usernameController,
-                            //添加装饰盒显示图标
-                            decoration: InputDecoration(
-                              labelText: "年龄:",
-                              icon: Icon(Icons.person),
+                            SizedBox(
+                              width: 20,
                             ),
-                            onSaved: (value) {
-                              monitorName = value;
-                            },
-                            validator: (String value) {
-                              return value == null ? "不能为空" : null;
-                            },
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    if (_formKey.currentState.validate()) {
-                                      _formKey.currentState.save();
-                                      Fluttertoast.showToast(msg: '添加成功');
-                                    }
-                                  },
-                                  child: Text("添加"),
-                                ),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
+                            ElevatedButton(
+                              child: Text("添加"),
+                              onPressed: () {
+                                if (addMonitorKey.currentState.validate()) {
+                                  addMonitor(
+                                      addMonitorNameController.text,
+                                      addMonitorSexController.text,
+                                      addMonitorAgeController.text);
+                                  //清空表单
+                                  addMonitorKey.currentState.reset();
+                                  Navigator.pop(context);
+                                  Fluttertoast.showToast(msg: "添加成功");
+                                } else {
+                                  Fluttertoast.showToast(msg: "添加失败");
+                                }
+                              },
+                            ),
+                          ],
+                        )
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
+              );
+            });
+      },
     );
   }
 }
