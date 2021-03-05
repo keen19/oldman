@@ -24,16 +24,8 @@ class _TablesState extends State<Tables> {
       label: "首页",
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.category),
-      label: "分类",
-    ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.message),
-      label: "消息",
-    ),
-    BottomNavigationBarItem(
       icon: Icon(Icons.settings),
-      label: "我的",
+      label: "设置",
     ),
 
   ];

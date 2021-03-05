@@ -11,6 +11,7 @@ import 'package:flutter_bmfbase/BaiduMap/bmfmap_base.dart'
     show BMFMapSDK, BMF_COORD_TYPE;
 import 'dart:io' show Platform;
 import 'database/ConnectionDB.dart';
+import '../bysj/admin/selectMonitorOldMan.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +46,7 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> with ConnectionDb{
+class _LoginPageState extends State<LoginPage> with ConnectionDb {
   List list = new List();
 
   TextEditingController userController = TextEditingController();
@@ -60,32 +61,46 @@ class _LoginPageState extends State<LoginPage> with ConnectionDb{
     super.initState();
     getConnection();
   }
+
   ///登录验证
   Future<void> loginVerify(String username, String password) async {
-    List  list =List();
-    Results result = await (await conn.execute(
-        "select username,password from user where username = '$username'"))
+    List list = List();
+
+    //查询监护人数据库
+    Results result2 = await (await conn.execute(
+            "select monitor_name,password from monitor where monitor_name = '$username' and password = '$password' "))
         .deStream();
-    result.forEach((element) {
-      list.add(element);
-      print(list);
-    });
-    if (list.length > 0 && list[0][0] == username && list[0][1] == password) {
+    //查询用户数据库
+    Results result = await (await conn.execute(
+            "select username,password from user where username = '$username' and password = '$password'"))
+        .deStream();
+    //判断是否登入用户或者监护人
+    if (result2.length != 0) {
+      result2.forEach((element) {
+        list.add(element);
+      });
       //验证成功 断开数据库连接
       conn.close();
-      Navigator.of((context))
-      /*.push(MaterialPageRoute(
-                                  builder: (context) => a.MyApp()));*/
-          .pushAndRemoveUntil(
+      Navigator.of((context)).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => ShowAllPeople('$username')),
+          (route) => route == null);
+      Fluttertoast.showToast(msg: "登录成功");
+    } else if (result.length != 0) {
+      result.forEach((element) {
+        list.add(element);
+        print(list);
+      });
+      //验证成功 断开数据库连接
+      conn.close();
+      Navigator.of((context)).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => Tabss.Tables()),
-              (route) => route == null);
+          (route) => route == null);
       Fluttertoast.showToast(msg: "登录成功");
     } else {
       Fluttertoast.showToast(msg: "用户名或密码错误");
     }
     return result;
   }
-
 
   @override
   Widget build(BuildContext context) {

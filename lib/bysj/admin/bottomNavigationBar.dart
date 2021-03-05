@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import '';
+import 'showMonitor.dart';
 import 'showAll.dart';
+import 'addMonitor.dart';
+import 'addOldMan.dart';
 
+void main() => runApp(AdminTables());
 
 
 class AdminTables extends StatefulWidget {
@@ -40,6 +43,7 @@ class _AdminTablesState extends State<AdminTables> {
 
   final _pageList = [
     ShowAllPeople(),
+    ShowAllMonitor(),
   ];
 
   @override
@@ -47,15 +51,52 @@ class _AdminTablesState extends State<AdminTables> {
     // TODO: implement build
 //    return HomeContent();
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Flutter Demo"),
-      ),
       //body: this._pageList[this._currentIndex],
       body: PageView(
         controller: pageController,
         onPageChanged: onPageChanged,
         children: _pageList,
       ),
+      floatingActionButton: Container(
+        height: 60,
+        width: 60,
+        padding: EdgeInsets.all(8),
+        margin: EdgeInsets.only(top: 20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(40),
+          color: Colors.white,
+        ),
+        child: FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: (){
+            showDialog(context: context,builder: (context){
+              /*return AlertDialog(
+                title: Text("请选择要添加的信息"),
+                actions: [
+                  AddOldMan(),
+                  AddMonitor(),
+                ],
+              );*/
+              return SimpleDialog(
+                title: Text('提示!'),
+                children: <Widget>[
+                  Container(
+                    height: 80,
+                    alignment: Alignment.center,
+                    child: Text('请选择要添加的信息:',style: TextStyle(fontSize: 20, ),),
+                  ),
+                  Divider(height: 1,color: Colors.black,),
+                  AddOldMan(),
+                  Divider(height: 1,color: Colors.black,),
+                  AddMonitor(),
+                ],
+              );
+            });
+            //
+          },
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: onTap,

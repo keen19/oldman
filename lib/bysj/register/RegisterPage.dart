@@ -170,6 +170,8 @@ class _RegisterPageState extends State<RegisterPage> with ConnectionDb{
                                   if(_formKey.currentState.validate()){
                                     registerUser(usernameController.text,passwordController.text,privateKeyController.text);
                                     _formKey.currentState.save();
+                                    _formKey.currentState.reset();
+                                    Navigator.pop(context);
                                     Fluttertoast.showToast(msg: '注册成功');
                                   }
                                 },

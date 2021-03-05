@@ -3,6 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sqljocky5/sqljocky.dart' hide Row;
 import 'usersManage.dart' as u;
 import '../database/ConnectionDB.dart';
+import 'bottomNavigationBar.dart';
 
 class AdminLoginPage extends StatefulWidget {
   @override
@@ -42,7 +43,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> with ConnectionDb{
           /*.push(MaterialPageRoute(
                                   builder: (context) => a.MyApp()));*/
           .pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => u.MyApp()),
+              MaterialPageRoute(builder: (context) => AdminTables()),
               (route) => route == null);
           conn.close();
       Fluttertoast.showToast(msg: "登录成功");

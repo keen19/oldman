@@ -5,32 +5,49 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sqljocky5/sqljocky.dart' hide Row;
 import 'addMonitor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'addOldMan.dart';
 
-void main() => runApp(ShowAllPeople());
 
 
 
 class ShowAllPeople extends StatefulWidget {
+  String monitorName;
+  ShowAllPeople(this.monitorName);
   @override
-  ShowAllPeopleState createState() => ShowAllPeopleState();
+  ShowAllPeopleState createState() => ShowAllPeopleState(monitorName);
 }
 
-class ShowAllPeopleState extends State<ShowAllPeople> with AutomaticKeepAliveClientMixin{
+class ShowAllPeopleState extends State<ShowAllPeople> {
   List list = List();
-
   Map<String, List> map = Map();
 
+  String monitorName;
+  ShowAllPeopleState(this.monitorName);
   @override
-  void initState() {
+   initState()  {
     super.initState();
-    getConnection();
+     getConnection();
+    setState(() {
+      _getName() ;
+    });
     //showAll();
-
-      Timer.periodic(Duration(milliseconds: 1000), (timer) { showAll();});
+    startTimer();
 
   }
+  Timer timer;
+  startTimer(){
+    if(mounted){
+      timer=Timer.periodic(Duration(milliseconds: 1000), (timer) { showAll(monitorName);});
+    }
+  }
 
+
+  _getName() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String monitorName=  prefs.getString('monitorName');
+    print(monitorName);
+  }
   MySqlConnection conn;
 
   getConnection() async {
@@ -40,27 +57,23 @@ class ShowAllPeopleState extends State<ShowAllPeople> with AutomaticKeepAliveCli
         user: 'keen',
         password: "Zxc000222",
         db: 'demo1'));
-    await showAll();
+    await showAll(monitorName);
   }
 
-  Future<void> showAll() async {
+  Future<void> showAll(String monitorName) async {
     //刷新界面清空widget
     await widgetClear();
     //清空list
     await listClear();
     //执行查询
     Results result = await (await conn.execute(
-            "select username,sex,age,latitude,longitude,address,guardian,state,emergency,bed,id from user"))
+        "select username,sex,age,latitude,longitude,address,guardian,state,emergency,bed,id from user where guardian='$monitorName'"))
         .deStream();
     result.forEach((element) {
       list.add(element);
+    });setState(() {
+      widgetss = createListView();
     });
-    if(mounted){
-      setState(() {
-        widgetss = createListView();
-      });
-    }
-
   }
 
   deleteUser(String username,String monitorName) async {
@@ -187,524 +200,6 @@ class ShowAllPeopleState extends State<ShowAllPeople> with AutomaticKeepAliveCli
                               ,
                             ],
                           ),
-                          Row(
-                            //mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "监护人:",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Text(
-                                "${list[i][6]}",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            //mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "处于监控范围:",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Icon(Icons.circle,
-                                  color: list[i][7] == 'y' ? Colors.green : Colors.red),
-                            ],
-                          ),
-                          Row(
-                            //mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "发生紧急情况:",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Icon(Icons.circle,
-                                  color: list[i][8] == 'y' ? Colors.green : Colors.red),
-                            ],
-                          ),
-                          Row(
-                            //mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "床号:",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Text(
-                                "${list[i][9]}",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                });
-          },
-          child: Container(
-            height: 50,
-            child: Row(
-              children: <Widget>[
-                Padding(padding: EdgeInsets.fromLTRB(5, 0, 0, 0)),
-                Container(width: 60,child: Center(child: Text(list[i][0]),),),
-                Container(width: 60,child: Center(child: Text(list[i][6]),),),
-                Container(width: 80,child: Center(child: Text(list[i][5]),),),
-                SizedBox(
-                  width: 10,
-                ),
-                //修改
-                InkWell(
-                  onTap: () {
-                    oldManNameController.text = '${list[i][0]}';
-                    oldManSexController.text = '${list[i][1]}';
-                    oldManAgeController.text = '${list[i][2]}';
-                    oldManMonitorScopeController.text =  '${list[i][7]}';
-                    oldManMonitorNameController.text =  '${list[i][6]}';
-                    oldManMonitorAddressController.text =  '${list[i][5]}';
-                    oldManEmergencyController.text =  '${list[i][8]}';
-                    oldManBedController.text = '${list[i][9]}';
-                     String sql="select username,sex,age,latitude,longitude,address,guardian,state,emergency,bed from user";
-                    showModalBottomSheet(
-                      isScrollControlled: true,
-                        context: context,
-                        builder: (context) {
-                          return Container(
-                            height: 650,
-                            child: Padding(
-                              padding: EdgeInsets.fromLTRB(20.0, 0, 20, 0),
-                              child: Container(
-                                height: 1400,
-                                child: Form(
-                                  key: _formKey,
-                                  child: Column(
-                                    children: <Widget>[
-                                      SizedBox(
-                                        height: 20,
-                                      ),
-                                      //用户名输入框
-                                      TextFormField(
-                                        controller: oldManNameController,
-                                        //添加装饰盒显示图标
-                                        decoration: InputDecoration(
-                                          fillColor: Color(0x30cccccc),
-                                          filled: true,
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00FF0000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00000000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          labelText: "用户名:",
-                                        ),
-                                        validator: (String value) {
-                                          if (value.length >= 2 &&
-                                              value.length <= 16) {
-                                            return null;
-                                          } else {
-                                            return '只能输入2-16个字符';
-                                          }
-                                        },
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      TextFormField(
-                                        controller: oldManSexController,
-                                        //添加装饰盒显示图标
-                                        decoration: InputDecoration(
-                                          fillColor: Color(0x30cccccc),
-                                          filled: true,
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00FF0000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00000000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          labelText: "性别:",
-                                        ),
-                                        validator: (String value) {
-                                          return value == 'nan' || value == 'nv'
-                                              ? null
-                                              : '请正确输入';
-                                        },
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      TextFormField(
-                                        controller: oldManAgeController,
-                                        //添加装饰盒显示图标
-                                        decoration: InputDecoration(
-                                          fillColor: Color(0x30cccccc),
-                                          filled: true,
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00FF0000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00000000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          labelText: "年龄:",
-                                        ),
-                                        validator: (String value) {
-                                          return value.length > 0 &&
-                                              value.length < 3
-                                              ? null
-                                              : '只能输入2-3个字符';
-                                        },
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      //修改处于监控范围内
-                                      TextFormField(
-                                        controller: oldManMonitorScopeController,
-                                        //添加装饰盒显示图标
-                                        decoration: InputDecoration(
-                                          fillColor: Color(0x30cccccc),
-                                          filled: true,
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00FF0000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00000000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          labelText: "处于监控范围:",
-                                        ),
-                                        validator: (String value) {
-                                          return value=='y' ||value=='n'
-                                              ? null
-                                              : '请输入y或n,y为yes,n为no';
-                                        },
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      //修改监控地址
-                                      TextFormField(
-                                        controller: oldManMonitorAddressController,
-                                        //添加装饰盒显示图标
-                                        decoration: InputDecoration(
-                                          fillColor: Color(0x30cccccc),
-                                          filled: true,
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00FF0000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00000000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          labelText: "监控地址:",
-                                        ),
-                                        validator: (String value) {
-                                          return value.length > 0
-                                              ? null
-                                              : '内容不能为空';
-                                        },
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      //修改紧急情况
-                                      TextFormField(
-                                        controller: oldManEmergencyController,
-                                        //添加装饰盒显示图标
-                                        decoration: InputDecoration(
-                                          fillColor: Color(0x30cccccc),
-                                          filled: true,
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00FF0000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00000000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          labelText: "紧急情况:",
-                                        ),
-                                        validator: (String value) {
-                                          return value=='y' ||value=='n'
-                                              ? null
-                                              : '请输入y或n,y为yes,n为no';
-                                        },
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      //修改床号
-                                      TextFormField(
-                                        controller: oldManBedController,
-                                        //添加装饰盒显示图标
-                                        decoration: InputDecoration(
-                                          fillColor: Color(0x30cccccc),
-                                          filled: true,
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00FF0000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00000000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          labelText: "床号:",
-                                        ),
-                                        validator: (String value) {
-                                          return value.length > 0
-                                              ? null
-                                              : '内容不能为空';
-                                        },
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      //修改监护人
-                                      TextFormField(
-                                        controller: oldManMonitorNameController,
-                                        //添加装饰盒显示图标
-                                        decoration: InputDecoration(
-                                          fillColor: Color(0x30cccccc),
-                                          filled: true,
-                                          enabledBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00FF0000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color(0x00000000)),
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(100))),
-                                          labelText: "监护人:",
-                                        ),
-                                        validator: (String value) {
-                                          return value.length > 0
-                                              ? null
-                                              : '内容不能为空';
-                                        },
-                                      ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          ElevatedButton(
-                                            child: Text("取消"),
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                          ),
-                                          SizedBox(
-                                            width: 20,
-                                          ),
-                                          ElevatedButton(
-                                            child: Text("修改"),
-                                            onPressed: () async {
-                                              if(_formKey.currentState.validate()){
-                                                await updateUser(oldManNameController.text, oldManSexController.text, oldManAgeController.text, oldManMonitorScopeController.text, oldManMonitorAddressController.text, oldManEmergencyController.text, oldManBedController.text, oldManMonitorNameController.text,list[i][10]);
-                                                Navigator.pop(context);
-                                                Fluttertoast.showToast(msg: "修改成功");
-                                                await showAll();
-                                              }else{
-                                                Fluttertoast.showToast(msg: "修改失败");
-                                              }
-                                            },
-                                          ),
-                                        ],
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-
-                        });
-                  },
-                  child: Container(
-                      padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
-                      decoration: BoxDecoration(
-                          shape: BoxShape.rectangle,
-                          borderRadius: BorderRadius.all(Radius.circular(20)),
-                          color: Color.fromARGB(255, 34, 150, 243)),
-                      height: 30,
-                      width: 50,
-                      child: Text(
-                        "修改",
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      )),
-                ),
-                //删除
-                InkWell(
-                  onTap: () {
-                    showDialog(
-                        context: context,
-                        builder: (ctx) {
-                          return AlertDialog(
-                            title: Text("提示信息!"),
-                            content: Text("您确定要删除吗?"),
-                            actions: <Widget>[
-                              ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text("取消")),
-                              ElevatedButton(
-                                  onPressed: () async {
-                                    await deleteUser(list[i][0],list[i][6]);
-                                    if(mounted){
-                                      setState(() {
-                                        //sortList.removeAt(0);
-                                        widgetss.remove(this);
-                                        // showAll();
-                                      });
-                                    }
-
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text("确定")),
-                            ],
-                          );
-                        });
-                  },
-                  child: Container(
-                      padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
-                      decoration: BoxDecoration(
-                          shape: BoxShape.rectangle,
-                          borderRadius: BorderRadius.all(Radius.circular(20)),
-                          color: Color.fromARGB(255, 34, 150, 243)),
-                      height: 30,
-                      width: 50,
-                      child: Text(
-                        "删除",
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      )),
-                ),
-                Icon(Icons.circle,
-                    color: list[i][7] == 'y' && list[i][8]=='y' ? Colors.green : Colors.red),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 15,
-                  color: Colors.black87,
-                ),
-              ],
-            ),
-          ),
-        ));
-      }else{
-        sortList.add(InkWell(
-          onTap: () {
-            return showModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return Container(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        //crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          Row(
-                            //mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "姓名:",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Text(
-                                "${list[i][0]}",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            //mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "性别:",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Text(
-                                "${list[i][1]}",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            //mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "年龄:",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Text(
-                                "${list[i][2]}",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            //mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "纬度:",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Text(
-                                "${list[i][3]}",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            //mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                "经度:",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Text(
-                                "${list[i][4]}",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                      Row(
-                        //mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            "地址:",
-                            style: TextStyle(fontSize: 20),
-                          ),
-                          Expanded(child: Text(
-                            "${list[i][5]}",
-                            style: TextStyle(fontSize: 20),
-                          ))
-                          ,
-                        ],
-                      ),
                           Row(
                             //mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
@@ -1038,10 +533,9 @@ class ShowAllPeopleState extends State<ShowAllPeople> with AutomaticKeepAliveCli
                                             child: Text("修改"),
                                             onPressed: () async {
                                               if(_formKey.currentState.validate()){
-                                                updateUser(oldManNameController.text, oldManSexController.text, oldManAgeController.text, oldManMonitorScopeController.text, oldManMonitorAddressController.text, oldManEmergencyController.text, oldManBedController.text, oldManMonitorNameController.text,list[i][10]);
-                                                Navigator.pop(context);
-                                                Fluttertoast.showToast(msg: "修改成功");
-                                                await showAll();
+                                                Navigator.pop(context);Fluttertoast.showToast(msg: "修改成功");
+                                                await updateUser(oldManNameController.text, oldManSexController.text, oldManAgeController.text, oldManMonitorScopeController.text, oldManMonitorAddressController.text, oldManEmergencyController.text, oldManBedController.text, oldManMonitorNameController.text,list[i][10]);
+                                                await showAll(monitorName);
                                               }else{
                                                 Fluttertoast.showToast(msg: "修改失败");
                                               }
@@ -1091,14 +585,525 @@ class ShowAllPeopleState extends State<ShowAllPeople> with AutomaticKeepAliveCli
                               ElevatedButton(
                                   onPressed: () async {
                                     await deleteUser(list[i][0],list[i][6]);
-                                    if(mounted){
-                                      setState(() {
-                                        sortList.removeAt(0);
-                                        widgetss.remove(this);
-                                        //  showAll();
-                                      });
-                                    }
+                                    setState(() {
+                                      //sortList.removeAt(0);
+                                      widgetss.remove(this);
+                                      // showAll();
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text("确定")),
+                            ],
+                          );
+                        });
+                  },
+                  child: Container(
+                      padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                      decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          color: Color.fromARGB(255, 34, 150, 243)),
+                      height: 30,
+                      width: 50,
+                      child: Text(
+                        "删除",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      )),
+                ),
+                Icon(Icons.circle,
+                    color: list[i][7] == 'y' && list[i][8]=='y' ? Colors.green : Colors.red),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 15,
+                  color: Colors.black87,
+                ),
+              ],
+            ),
+          ),
+        ));
+      }else{
+        sortList.add(InkWell(
+          onTap: () {
+            return showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return Container(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        //crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "姓名:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][0]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "性别:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][1]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "年龄:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][2]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "纬度:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][3]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "经度:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][4]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "地址:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Expanded(child: Text(
+                                "${list[i][5]}",
+                                style: TextStyle(fontSize: 20),
+                              ))
+                              ,
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "监护人:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][6]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "处于监控范围:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Icon(Icons.circle,
+                                  color: list[i][7] == 'y' ? Colors.green : Colors.red),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "发生紧急情况:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Icon(Icons.circle,
+                                  color: list[i][8] == 'y' ? Colors.green : Colors.red),
+                            ],
+                          ),
+                          Row(
+                            //mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                "床号:",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "${list[i][9]}",
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                });
+          },
+          child: Container(
+            height: 50,
+            child: Row(
+              children: <Widget>[
+                Padding(padding: EdgeInsets.fromLTRB(5, 0, 0, 0)),
+                Container(width: 60,child: Center(child: Text(list[i][0]),),),
+                Container(width: 60,child: Center(child: Text(list[i][6]),),),
+                Container(width: 80,child: Center(child: Text(list[i][5]),),),
+                SizedBox(
+                  width: 10,
+                ),
+                //修改
+                InkWell(
+                  onTap: () {
+                    oldManNameController.text = '${list[i][0]}';
+                    oldManSexController.text = '${list[i][1]}';
+                    oldManAgeController.text = '${list[i][2]}';
+                    oldManMonitorScopeController.text =  '${list[i][7]}';
+                    oldManMonitorNameController.text =  '${list[i][6]}';
+                    oldManMonitorAddressController.text =  '${list[i][5]}';
+                    oldManEmergencyController.text =  '${list[i][8]}';
+                    oldManBedController.text = '${list[i][9]}';
+                    String sql="select username,sex,age,latitude,longitude,address,guardian,state,emergency,bed from user";
+                    showModalBottomSheet(
+                        isScrollControlled: true,
+                        context: context,
+                        builder: (context) {
+                          return Container(
+                            height: 650,
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(20.0, 0, 20, 0),
+                              child: Container(
+                                height: 1400,
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    children: <Widget>[
+                                      SizedBox(
+                                        height: 20,
+                                      ),
+                                      //用户名输入框
+                                      TextFormField(
+                                        controller: oldManNameController,
+                                        //添加装饰盒显示图标
+                                        decoration: InputDecoration(
+                                          fillColor: Color(0x30cccccc),
+                                          filled: true,
+                                          enabledBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00FF0000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00000000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          labelText: "用户名:",
+                                        ),
+                                        validator: (String value) {
+                                          if (value.length >= 2 &&
+                                              value.length <= 16) {
+                                            return null;
+                                          } else {
+                                            return '只能输入2-16个字符';
+                                          }
+                                        },
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      TextFormField(
+                                        controller: oldManSexController,
+                                        //添加装饰盒显示图标
+                                        decoration: InputDecoration(
+                                          fillColor: Color(0x30cccccc),
+                                          filled: true,
+                                          enabledBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00FF0000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00000000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          labelText: "性别:",
+                                        ),
+                                        validator: (String value) {
+                                          return value == 'nan' || value == 'nv'
+                                              ? null
+                                              : '请正确输入';
+                                        },
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      TextFormField(
+                                        controller: oldManAgeController,
+                                        //添加装饰盒显示图标
+                                        decoration: InputDecoration(
+                                          fillColor: Color(0x30cccccc),
+                                          filled: true,
+                                          enabledBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00FF0000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00000000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          labelText: "年龄:",
+                                        ),
+                                        validator: (String value) {
+                                          return value.length > 0 &&
+                                              value.length < 3
+                                              ? null
+                                              : '只能输入2-3个字符';
+                                        },
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      //修改处于监控范围内
+                                      TextFormField(
+                                        controller: oldManMonitorScopeController,
+                                        //添加装饰盒显示图标
+                                        decoration: InputDecoration(
+                                          fillColor: Color(0x30cccccc),
+                                          filled: true,
+                                          enabledBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00FF0000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00000000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          labelText: "处于监控范围:",
+                                        ),
+                                        validator: (String value) {
+                                          return value=='y' ||value=='n'
+                                              ? null
+                                              : '请输入y或n,y为yes,n为no';
+                                        },
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      //修改监控地址
+                                      TextFormField(
+                                        controller: oldManMonitorAddressController,
+                                        //添加装饰盒显示图标
+                                        decoration: InputDecoration(
+                                          fillColor: Color(0x30cccccc),
+                                          filled: true,
+                                          enabledBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00FF0000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00000000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          labelText: "监控地址:",
+                                        ),
+                                        validator: (String value) {
+                                          return value.length > 0
+                                              ? null
+                                              : '内容不能为空';
+                                        },
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      //修改紧急情况
+                                      TextFormField(
+                                        controller: oldManEmergencyController,
+                                        //添加装饰盒显示图标
+                                        decoration: InputDecoration(
+                                          fillColor: Color(0x30cccccc),
+                                          filled: true,
+                                          enabledBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00FF0000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00000000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          labelText: "紧急情况:",
+                                        ),
+                                        validator: (String value) {
+                                          return value=='y' ||value=='n'
+                                              ? null
+                                              : '请输入y或n,y为yes,n为no';
+                                        },
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      //修改床号
+                                      TextFormField(
+                                        controller: oldManBedController,
+                                        //添加装饰盒显示图标
+                                        decoration: InputDecoration(
+                                          fillColor: Color(0x30cccccc),
+                                          filled: true,
+                                          enabledBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00FF0000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00000000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          labelText: "床号:",
+                                        ),
+                                        validator: (String value) {
+                                          return value.length > 0
+                                              ? null
+                                              : '内容不能为空';
+                                        },
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      //修改监护人
+                                      TextFormField(
+                                        controller: oldManMonitorNameController,
+                                        //添加装饰盒显示图标
+                                        decoration: InputDecoration(
+                                          fillColor: Color(0x30cccccc),
+                                          filled: true,
+                                          enabledBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00FF0000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Color(0x00000000)),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(100))),
+                                          labelText: "监护人:",
+                                        ),
+                                        validator: (String value) {
+                                          return value.length > 0
+                                              ? null
+                                              : '内容不能为空';
+                                        },
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          ElevatedButton(
+                                            child: Text("取消"),
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                          SizedBox(
+                                            width: 20,
+                                          ),
+                                          ElevatedButton(
+                                            child: Text("修改"),
+                                            onPressed: () async {
+                                              if(_formKey.currentState.validate()){
+                                                Navigator.pop(context);Fluttertoast.showToast(msg: "修改成功");
+                                                await updateUser(oldManNameController.text, oldManSexController.text, oldManAgeController.text, oldManMonitorScopeController.text, oldManMonitorAddressController.text, oldManEmergencyController.text, oldManBedController.text, oldManMonitorNameController.text,list[i][10]);
+                                                await showAll(monitorName);
+                                              }else{
+                                                Fluttertoast.showToast(msg: "修改失败");
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
 
+                        });
+                  },
+                  child: Container(
+                      padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                      decoration: BoxDecoration(
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          color: Color.fromARGB(255, 34, 150, 243)),
+                      height: 30,
+                      width: 50,
+                      child: Text(
+                        "修改",
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      )),
+                ),
+                //删除
+                InkWell(
+                  onTap: () {
+                    showDialog(
+                        context: context,
+                        builder: (ctx) {
+                          return AlertDialog(
+                            title: Text("提示信息!"),
+                            content: Text("您确定要删除吗?"),
+                            actions: <Widget>[
+                              ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text("取消")),
+                              ElevatedButton(
+                                  onPressed: () async {
+                                    await deleteUser(list[i][0],list[i][6]);
+                                    setState(() {
+                                      sortList.removeAt(0);
+                                      widgetss.remove(this);
+                                      //  showAll();
+                                    });
                                     Navigator.pop(context);
                                   },
                                   child: Text("确定")),
@@ -1138,10 +1143,10 @@ class ShowAllPeopleState extends State<ShowAllPeople> with AutomaticKeepAliveCli
     ///排序修改颜色
     for(int i = 0;i<sortList.length;i++){
       widgetss.add(
-        Container(
-          color: i %2 != 0? a:b,
-          child: sortList[i],
-        )
+          Container(
+            color: i %2 != 0? a:b,
+            child: sortList[i],
+          )
       );
     }
     return widgetss;
@@ -1153,7 +1158,7 @@ class ShowAllPeopleState extends State<ShowAllPeople> with AutomaticKeepAliveCli
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
-          color: Colors.black
+            color: Colors.black
         ),
       ),
       child: Row(
@@ -1166,7 +1171,7 @@ class ShowAllPeopleState extends State<ShowAllPeople> with AutomaticKeepAliveCli
               decoration: BoxDecoration(color: Colors.black87),
             ),
           ),
-           //垂直分割线
+          //垂直分割线
           Container(width: 60,child: Center(child: Text("监护人"),),),
           SizedBox(
             width: 1,
@@ -1209,7 +1214,9 @@ class ShowAllPeopleState extends State<ShowAllPeople> with AutomaticKeepAliveCli
       title: 'Material App',
       home: Scaffold(
         appBar: AppBar(
-          title: Text('老人信息'),
+          leading: IconButton(onPressed: () { Navigator.pop(context);
+          timer.cancel();}, icon: Icon(Icons.arrow_back),),
+          title: Text('请查看你要监护的老人'),
         ),
         body: Column(
           children: <Widget>[
@@ -1222,7 +1229,5 @@ class ShowAllPeopleState extends State<ShowAllPeople> with AutomaticKeepAliveCli
 
   }
 
-  @override
-  // TODO: implement wantKeepAlive
-  bool get wantKeepAlive => true;
+
 }

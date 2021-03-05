@@ -10,29 +10,32 @@ import 'package:sqljocky5/sqljocky.dart';
       password: "Zxc000222",
       db: 'demo1'));
 
-  List list = List();
 
-  Map<String,List>map =Map();
-  ///查询所有信息
-  Future<void> showAll() async {
-   for (int i = 0; i < list.length; i++) {
-    print(list);
-    list.removeAt(i);
-   }
-   Results result =
-   await (await conn.execute("select username,address,guardian from user"))
-       .deStream();
-   result.forEach((element) {
-    list.add(element);
-    print(element);
-   });
-   for(int i=0;i<list.length;i++){
-    map['${list[i][0]}']=list[i];
-   }
-   print(map);
-   //createListView();
+  Future<void> addOldMan(
+      String username,String sex,String age,String monitorScope,
+      String address,String emergency,String bed,String monitorName,String privateKey,String password) async {
+    String sql = "insert into user (username,password,privateKey,address,guardian,sex,age,state,emergency,bed) values (?,?,?,?,?,?,?,?,?,?)";
+    List<StreamedResults> results = await (await conn.preparedWithAll(sql, [
+      [ '$username', '$password','$privateKey','$address','$monitorName','$sex','$age','$monitorScope','$emergency','$bed']
+    ]))
+        .toList();
   }
-  showAll();
+  await addOldMan('hqh', '男','69','y','广州市白云区广从8路736号', 'y', '256', '刘红', '213423', '12345678');
+   //createListView();
+
+/*  Results resutls=await(await conn.execute("select monitor_name,monitor_sex,monitor_age,on_duty,off_duty,monitor_telephone,monitor_id from monitor")).deStream();
+  print(resutls);
+  updateUser(String username,String sex,String age,String monitorScope,String address,String emergency,String bed,String monitorName,int id) async{
+   String sql="update  user set username=?,sex=?,age=?,state=?,address=?,emergency=?,bed=?,guardian=? where id=?";
+   List<StreamedResults> results2=await(await conn.preparedWithAll(sql, [['$username','$sex','$age','$monitorScope','$address','$emergency','$bed','$monitorName','$id']])).toList();
+
+  }
+  updateMonitor(String monitorName,String monitorSex,String monitorAge,String onDuty,String offDuty,String monitorTelephone,int monitorId) async{
+   String sql="update  user set monitor_name=?,monitor_sex=?,monitor_age=?,on_duty=?,off_duty=?,monitor_telephone=? where monitor_id = ?";
+   List<StreamedResults> results2=await(await conn.preparedWithAll(sql, [['$monitorName','$monitorSex','$monitorAge','$onDuty','$offDuty','$monitorTelephone','$monitorId']])).toList();
+
+  }
+  updateMonitor('黄强辉', 'nan', '18', '15','24','13142354764',1);*/
   // print(results);
 /*   Results result = await (await conn.execute(
        "select username,password from user where username = 'nihao'"))
